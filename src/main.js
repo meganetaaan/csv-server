@@ -2,14 +2,41 @@ const express = require('express')
 const fs = require('fs')
 const csv = require('csv')
 
-const items = []
 const columns = {
     '列1': 'id',
     '列2': 'name',
     '列3': 'age'
 }
-const fileName = './src/test.csv'
+
 const models = {}
+
+(async function() {
+    await parseCSV('')
+    
+})()
+function parseColumns(line) {
+    return Object.keys(line).map((k) => {
+        return columns[line[k]]
+    })
+}
+
+async function parseCSV (modelName) {
+    const fileName = `./src/${modelName}.csv`
+    const parser = csv.parse({columns: parseColumns})
+    const readableStream = fs.createReadStream(fileName, {encoding: 'utf-8'})
+
+    readableStream.pipe(parser)
+    return new Promise(resolve, reject)
+    parser.on('readable', () => {
+        let data
+        while (data = parser.read()) {
+            items.push(data)
+        }
+    })
+    parser.on('end', () => {
+        console.log('init end')
+    })
+}
 
 /*
 GET http://localhost:8080/resources/User/0
@@ -17,27 +44,6 @@ POST http://localhost:8080/resources/User/{id: 1, name: bob, age: 13}
 PUT http://localhost:8080/resources/User/1{name: Bob, age: 13}
 */
 
-
-function parseColumns(line) {
-    return Object.keys(line).map((k) => {
-        return columns[line[k]]
-    })
-}
-
-const parser = csv.parse({columns: parseColumns})
-const readableStream = fs.createReadStream(fileName, {encoding: 'utf-8'})
-
-readableStream.pipe(parser)
-parser.on('readable', () => {
-    let data
-    while (data = parser.read()) {
-        items.push(data)
-    }
-})
-
-parser.on('end', () => {
-    console.log('init end')
-})
 
 const app = express()
 var router = express.Router();
@@ -59,10 +65,17 @@ router.get('/about', function(req, res) {
 app.use('/birds', router)
 
 const router2 = express.Router()
-router2.route('/:item/:id')
+router2.route('/:model/:id')
 .get(function(req, res) {
-    console.log(item, id)
-    res.send(JSON.stringify({item, id}, null, 2))
+    console.log(req.param.model, req.param.id)
+})
+.post(function(req, res) {
+    const modelKey = req.param.model
+    const id = req.param.id
+
+    const items = 
+
+    res.send('OK');
 })
 
 app.use('/resources', router2)
