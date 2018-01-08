@@ -3,23 +3,17 @@ const fs = require('fs')
 const csv = require('csv')
 const bodyParser = require('body-parser')
 const iconv = require('iconv-lite')
+const ModelManager = require('./ModelManager')
 
 // TODO: DataStore
 const models = {}
 const schemas = {}
+const modelManager = new ModelManager()
 let seq = 0
-
-const parseColumns = (line) => {
-  return Object.keys(line).map((k) => {
-    return columns[line[k]]
-  })
-}
 
 const importCSV = async (modelName) => {
   return new Promise((resolve, reject) => {
-    if (models[modelName] == null) {
-      models[modelName] = {}
-    }
+    let Model = modelManager.getModel(modelName)
     const fileName = `./src/${modelName}.csv`
     const parser = csv.parse({ columns: true })
     const readableStream = fs.createReadStream(fileName)
@@ -27,7 +21,11 @@ const importCSV = async (modelName) => {
       .pipe(iconv.encodeStream('UTF-8'))
       .pipe(parser)
     parser.on('readable', () => {
-      while (data = parser.read()) {
+      while (true) {
+        let data = parser.read()
+        if (data == null) {
+          break
+        }
         const id = data.id ? data.id : seq++
         models[modelName][id] = data
       }
@@ -49,23 +47,22 @@ const importCSV = async (modelName) => {
   PUT http://localhost:8080/resources/User/1{name: Bob, age: 13}
   */
 
-
   const app = express()
-  var router = express.Router();
+  var router = express.Router()
 
   // middleware that is specific to this router
-  router.use(function timeLog(req, res, next) {
-    console.log('Time: ', Date.now());
-    next();
-  });
+  router.use(function timeLog (req, res, next) {
+    console.log('Time: ', Date.now())
+    next()
+  })
   // define the home page route
   router.get('/', function (req, res) {
-    res.send('Birds home page');
-  });
+    res.send('Birds home page')
+  })
   // define the about route
   router.get('/about', function (req, res) {
-    res.send('About birds');
-  });
+    res.send('About birds')
+  })
 
   app.use('/birds', router)
 
@@ -76,13 +73,12 @@ const importCSV = async (modelName) => {
       const id = req.params.id
       const items = models[modelName]
       res.send(items[id])
-    });
+    })
   router2.route('/:model')
     .get(function (req, res) {
       const modelName = req.params.model
       const ids = Object.keys(models[modelName])
       res.send(ids)
-
     })
     .post(function (req, res) {
       const modelName = req.params.model
@@ -102,13 +98,13 @@ const importCSV = async (modelName) => {
         }
         obj.id = data.id ? data.id : seq++
         items[obj.id] = obj
-        res.send('OK');
+        res.send('OK')
       }
     })
 
   // parse json request body
-  app.use(bodyParser.urlencoded({ extended: true }));
-  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({ extended: true }))
+  app.use(bodyParser.json())
   app.use('/resources', router2)
 
   app.get('/', function (req, res) {

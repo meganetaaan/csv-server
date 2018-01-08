@@ -1,15 +1,22 @@
 const mongoose = require('mongoose')
+const Schema = mongoose.Schema
 
-export default class ModelManager {
-  getModelName {
+mongoose.connect('mongodb://localhost/test')
 
+module.exports = class ModelManager {
+  constructor () {
+    this.models = new Map()
   }
-  createSchema(def) {
-    if (schemas[modelName] == null) {
-      schemas[modelName] = {}
-      for (let k of Object.keys(data)) {
-        schemas[modelName][k] = {}
-      }
-    }
+  getModelNames () {
+    return this.models.keys()
+  }
+  createModel (name, schemaDef) {
+    const schema = new Schema(schemaDef)
+    const model = mongoose.model(name, schema)
+    this.models.set(name, model)
+    return model
+  }
+  getModel (name) {
+    return this.models.get(name)
   }
 }
