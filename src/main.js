@@ -11,9 +11,21 @@ const schemas = {}
 const modelManager = new ModelManager()
 let seq = 0
 
+const createSchemaFromRecord = (record) => {
+  const schema = {}
+  for (let [k, v] of Object.entries(record)) {
+    schema[k] = inspectType(v)
+  }
+  return schema
+}
+
+const inspectType = (v) => {
+  // TODO
+  return String
+}
+
 const importCSV = async (modelName) => {
   return new Promise((resolve, reject) => {
-    let Model = modelManager.getModel(modelName)
     const fileName = `./src/${modelName}.csv`
     const parser = csv.parse({ columns: true })
     const readableStream = fs.createReadStream(fileName)
@@ -27,7 +39,15 @@ const importCSV = async (modelName) => {
           break
         }
         const id = data.id ? data.id : seq++
-        models[modelName][id] = data
+        let Model = modelManager.getModel(modelName)
+        // TODO: make function
+        if (Model == null) {
+          const schema = createSchemaFromRecord(data)
+          Model = modelManager.createModel(modelName, schema)
+        }
+        const item = new Model(data)
+        item.id = id
+        item.save()
       }
     })
     parser.on('end', () => {
@@ -51,7 +71,7 @@ const importCSV = async (modelName) => {
   var router = express.Router()
 
   // middleware that is specific to this router
-  router.use(function timeLog (req, res, next) {
+  router.use(function timeLog(req, res, next) {
     console.log('Time: ', Date.now())
     next()
   })
