@@ -73,26 +73,9 @@ const importCSV = async (modelName) => {
   */
 
   const app = express()
-  var router = express.Router()
 
-  // middleware that is specific to this router
-  router.use(function timeLog(req, res, next) {
-    console.log('Time: ', Date.now())
-    next()
-  })
-  // define the home page route
-  router.get('/', function (req, res) {
-    res.send('Birds home page')
-  })
-  // define the about route
-  router.get('/about', function (req, res) {
-    res.send('About birds')
-  })
-
-  app.use('/birds', router)
-
-  const router2 = express.Router()
-  router2.route('/:model/:id')
+  const router = express.Router()
+  router.route('/:model/:id')
     .get(async function (req, res) {
       const modelName = req.params.model
       const id = req.params.id
@@ -105,7 +88,7 @@ const importCSV = async (modelName) => {
         throw e
       }
     })
-  router2.route('/:model')
+  router.route('/:model')
     .get(function (req, res) {
       const modelName = req.params.model
       const ids = Object.keys(models[modelName])
@@ -136,7 +119,7 @@ const importCSV = async (modelName) => {
   // parse json request body
   app.use(bodyParser.urlencoded({ extended: true }))
   app.use(bodyParser.json())
-  app.use('/resources', router2)
+  app.use('/resources', router)
 
   app.get('/', function (req, res) {
     res.send(JSON.stringify(models, null, 2))
