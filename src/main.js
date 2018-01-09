@@ -16,6 +16,11 @@ const createSchemaFromRecord = (record) => {
   for (let [k, v] of Object.entries(record)) {
     schema[k] = inspectType(v)
   }
+  if (schema.id == null) {
+    schema.id = {
+      type: String
+    }
+  }
   return schema
 }
 
@@ -88,11 +93,17 @@ const importCSV = async (modelName) => {
 
   const router2 = express.Router()
   router2.route('/:model/:id')
-    .get(function (req, res) {
+    .get(async function (req, res) {
       const modelName = req.params.model
       const id = req.params.id
-      const items = models[modelName]
-      res.send(items[id])
+      // const items = models[modelName]
+      const Model = modelManager.getModel(modelName)
+      try {
+        const item = await Model.find({id}).exec()
+        res.send(item)
+      } catch (e) {
+        throw e
+      }
     })
   router2.route('/:model')
     .get(function (req, res) {
@@ -131,7 +142,7 @@ const importCSV = async (modelName) => {
     res.send(JSON.stringify(models, null, 2))
   })
 
-  const server = app.listen(8080, function () {
+  app.listen(8080, function () {
     console.log(`listening to port: 8080`)
   })
 })()
