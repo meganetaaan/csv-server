@@ -2,10 +2,17 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 mongoose.connect('mongodb://localhost/test')
+let modelManager
 
 module.exports = class ModelManager {
   constructor () {
     this.models = new Map()
+  }
+  static getModelManager () {
+    if (modelManager == null) {
+      modelManager = new ModelManager()
+    }
+    return modelManager
   }
   getModelNames () {
     return this.models.keys()
@@ -13,6 +20,7 @@ module.exports = class ModelManager {
   createModel (name, schemaDef) {
     const schema = new Schema(schemaDef)
     const model = mongoose.model(name, schema)
+    // TODO: persist schemas using mongo
     this.models.set(name, model)
     return model
   }
@@ -20,3 +28,11 @@ module.exports = class ModelManager {
     return this.models.get(name)
   }
 }
+
+/*
+User: {
+  id: 'String',
+  name: 'String',
+  date: 'String'
+}
+*/
