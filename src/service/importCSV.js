@@ -16,17 +16,21 @@ const createSchemaFromRecord = (record) => {
   }
   if (schema.id == null) {
     schema.id = {
-      type: String
+      type: String,
+      unique: true
     }
   }
   return schema
 }
 
-module.exports = async function (modelName) {
+const importCSVFromModelName = async modelName => {
+  const path = `./src/sample/${modelName}.csv`
+  return importCSV(modelName, path)
+}
+const importCSV = async (modelName, file) => {
+  const readableStream = fs.createReadStream(file)
   return new Promise((resolve, reject) => {
-    const fileName = `./src/sample/${modelName}.csv`
     const parser = csv.parse({ columns: true })
-    const readableStream = fs.createReadStream(fileName)
     readableStream.pipe(iconv.decodeStream('SJIS'))
       .pipe(iconv.encodeStream('UTF-8'))
       .pipe(parser)
@@ -51,4 +55,9 @@ module.exports = async function (modelName) {
       resolve()
     })
   })
+}
+
+module.exports = {
+  importCSVFromModelName,
+  importCSV
 }

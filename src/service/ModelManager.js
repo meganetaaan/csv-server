@@ -28,11 +28,3 @@ module.exports = class ModelManager {
     return this.models.get(name)
   }
 }
-
-/*
-User: {
-  id: 'String',
-  name: 'String',
-  date: 'String'
-}
-*/

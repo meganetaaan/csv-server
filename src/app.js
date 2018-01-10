@@ -1,6 +1,7 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const router = require('./controller/CRUDController')
+const uploadRouter = require('./controller/UploadController')
 const importCSV = require('./service/importCSV')
 
 // TODO: DataStore
@@ -10,7 +11,7 @@ const importCSV = require('./service/importCSV')
   POST http://localhost:8080/resources/User/{id: 1, name: bob, age: 13}
   PUT http://localhost:8080/resources/User/1{name: Bob, age: 13}
   */
-  importCSV('User')
+  importCSV.importCSVFromModelName('User')
 
   const app = express()
 
@@ -18,6 +19,7 @@ const importCSV = require('./service/importCSV')
   app.use(bodyParser.urlencoded({ extended: true }))
   app.use(bodyParser.json())
   app.use('/resources', router)
+  app.use('/upload', uploadRouter)
 
   app.listen(8080, function () {
     console.log(`listening to port: 8080`)
