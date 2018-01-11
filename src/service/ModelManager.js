@@ -6,7 +6,7 @@ let modelManager
 
 module.exports = class ModelManager {
   constructor () {
-    this.models = new Map()
+    this._init()
   }
   static getModelManager () {
     if (modelManager == null) {
@@ -14,17 +14,32 @@ module.exports = class ModelManager {
     }
     return modelManager
   }
+  _init () {
+    // TODO: read schemas from mongo and create Models
+    /*
+    {
+      modelName: 'User',
+      properties: [
+        {
+          name: ''
+          typeName: ''
+        }
+      ]
+    }
+    */
+  }
   getModelNames () {
-    return this.models.keys()
+    return mongoose.modelNames()
   }
   createModel (name, schemaDef) {
     const schema = new Schema(schemaDef)
     const model = mongoose.model(name, schema)
-    // TODO: persist schemas using mongo
-    this.models.set(name, model)
     return model
   }
   getModel (name) {
-    return this.models.get(name)
+    if (mongoose.modelNames().includes(name)) {
+      return mongoose.model(name)
+    }
+    return null
   }
 }
