@@ -2,6 +2,7 @@ const fs = require('fs')
 const csv = require('csv')
 const iconv = require('iconv-lite')
 const modelManager = require('./ModelManager').getModelManager()
+const HeaderInfo = require('./HeaderInfo')
 let seq = 0
 
 const inspectType = (v) => {
@@ -11,8 +12,16 @@ const inspectType = (v) => {
 
 const createSchemaFromRecord = (record) => {
   const schema = {}
+  const headers = []
   for (let [k, v] of Object.entries(record)) {
-    schema[k] = inspectType(v)
+    const name = k
+    const type = inspectType(v)
+    schema[name] = type
+    const header = {
+      name,
+      typeName: type.toString() // TODO: can be convert back?
+    }
+    headers.push(header)
   }
   if (schema.id == null) {
     schema.id = {
@@ -20,7 +29,10 @@ const createSchemaFromRecord = (record) => {
       unique: true
     }
   }
-  return schema
+  return {
+    schema,
+    headers
+  }
 }
 
 const importCSVFromModelName = async modelName => {
@@ -43,7 +55,14 @@ const importCSV = async (modelName, file) => {
         const id = data.id ? data.id : seq++
         let Model = modelManager.getModel(modelName)
         if (Model == null) {
-          const schema = createSchemaFromRecord(data)
+          const {schema, headers} = createSchemaFromRecord(data)
+
+          // TODO: could be done by modelManager?
+          const headerInfo = new HeaderInfo({
+            name: modelName,
+            props: headers
+          })
+          headerInfo.save()
           Model = modelManager.createModel(modelName, schema)
         }
         const item = new Model(data)
