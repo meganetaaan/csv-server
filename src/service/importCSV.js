@@ -2,7 +2,6 @@ const fs = require('fs')
 const csv = require('csv')
 const iconv = require('iconv-lite')
 const modelManager = require('./ModelManager').getModelManager()
-const HeaderInfo = require('./HeaderInfo')
 let seq = 0
 
 const inspectType = (v) => {
@@ -56,13 +55,7 @@ const importCSV = async (modelName, file) => {
         let Model = modelManager.getModel(modelName)
         if (Model == null) {
           const {schema, headers} = createSchemaFromRecord(data)
-
-          // TODO: could be done by modelManager?
-          const headerInfo = new HeaderInfo({
-            name: modelName,
-            props: headers
-          })
-          headerInfo.save()
+          modelManager.saveCSVMetadata(modelName, headers)
           Model = modelManager.createModel(modelName, schema)
         }
         const item = new Model(data)
