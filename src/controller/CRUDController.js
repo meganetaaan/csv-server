@@ -38,7 +38,29 @@ router.route('/:model')
       throw e
     }
   })
-  .post(function (req, res) {
+  .put(async function (req, res) {
+    const modelName = req.params.model
+    // const items = models[modelName]
+    const Model = modelManager.getModel(modelName)
+    const data = req.body
+    if (data.id == null) {
+      data.id = uuid()
+    }
+    try {
+      await Model.findOneAndUpdate({
+        id: data.id
+      },
+      data,
+      {
+        upsert: true,
+        new: true
+      })
+      res.send('OK')
+    } catch (e) {
+      throw e
+    }
+  })
+  .post(async function (req, res) {
     const modelName = req.params.model
     // const items = models[modelName]
     const Model = modelManager.getModel(modelName)
@@ -48,7 +70,7 @@ router.route('/:model')
     }
     try {
       const item = new Model(data)
-      item.save()
+      await item.save()
       res.send('OK')
     } catch (e) {
       throw e
