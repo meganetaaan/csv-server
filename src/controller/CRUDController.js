@@ -16,6 +16,17 @@ router.route('/:model/:id')
       throw e
     }
   })
+  .delete(async function (req, res) {
+    const modelName = req.params.model
+    const id = req.params.id
+    const Model = modelManager.getModel(modelName)
+    try {
+      await Model.deleteOne({ id }).exec()
+      res.send('OK')
+    } catch (e) {
+      throw e
+    }
+  })
 router.route('/removeall/:model')
   .delete(async function (req, res) {
     const modelName = req.params.model
